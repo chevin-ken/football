@@ -187,7 +187,79 @@ class Simple115StateWrapper(gym.ObservationWrapper):
       final_obs.append(o)
     return np.array(final_obs, dtype=np.float32)
 
+class MoreFeatWrapper(gym.ObservationWrapper):
+  def __init__(self, env, fixed_positions=False):
+    gym.ObservationWrapper.__init__(self, env)
+    action_shape = np.shape(self.env.action_space)
+    shape = (action_shape[0] if len(action_shape) else 1, 130)
+    self.observation_space = gym.spaces.Box(
+        low=-np.inf, high=np.inf, shape=shape, dtype=np.float32)
+    self._fixed_positions = fixed_positions
+    
+  def observation(self, observation):
+    """Converts an observation into simple115 (or simple115v2) format."""
+    return MoreFeatWrapper.convert_observation(observation, self._fixed_positions)
 
+  @staticmethod
+  def convert_observation(observation, fixed_positions):
+    """Adds more features to the simple115 (or simple115v2) format."""
+    
+    def do_flatten(obj):
+      """Run flatten on either python list or numpy array."""
+      if type(obj) == list:
+        return np.array(obj).flatten()
+      return obj.flatten()
+    
+    obs = Simple115StateWrapper.convert_observation(observation, fixed_positions)[0]
+
+    # Position of active player
+    left, right = obs[:22], obs[44:66]
+    player = np.where(obs[97:108] == 1)[0]  # Left to right? Right to left?
+    x = obs[2*player]
+    y = obs[2*player + 1]
+
+    # Closest teammate to active player: [distance, x-direction, y-direction]
+    p_i = 0
+    closest_dist = float('inf')
+    for i in range(11):
+        dist = math.sqrt((left[2*i] - x) ** 2 + (left[2*i + 1] - y) ** 2)
+        if dist and dist < closest_dist: 
+            p_i = i
+            closest_dist = dist
+    close_teammate = np.array([closest_dist, (left[2*p_i] - x)[0], (left[2*p_i + 1] - y)[0]])
+
+    # Closest opponent to active player: [distance, x-direction, y-direction]
+    p_i = 0
+    closest_dist = float('inf')
+    for i in range(11):
+        dist = math.sqrt((right[2*i] - x) ** 2 + (right[2*i + 1] - y) ** 2)
+        if dist and dist < closest_dist: 
+            p_i = i
+            closest_dist = dist
+    close_opponent = np.array([closest_dist, (right[2*p_i] - x)[0], (right[2*p_i + 1] - y)[0]])
+
+    # Ball to active player: [distance, x-direction, y-direction]
+    dist = math.sqrt((obs[88] - x) ** 2 + (obs[89] - y) ** 2)
+    ball_dist = np.array([dist, (obs[88] - x)[0], (obs[89] - y)[0]])
+
+    # Ball to own goal: [distance, x-direction, y-direction]
+    dist = math.sqrt((obs[88] + 1) ** 2 + (obs[89]) ** 2)
+    ball_2_own_goal = np.array([dist, obs[88] + 1, obs[88]])
+
+    # Ball to opponent goal: [distance, x-direction, y-direction]
+    dist = math.sqrt((obs[88] - 1) ** 2 + (obs[89]) ** 2)
+    ball_2_opp_goal = np.array([dist, obs[88] - 1, obs[88]])
+
+    obs = np.concatenate((obs, close_teammate, close_opponent, ball_dist, ball_2_own_goal, ball_2_opp_goal))
+    
+    
+    sticky_actions = []
+    for obs in observations:
+        sticky_actions.append(do_flatten(obs["sticky_actions"]))
+            obs = np.concatenate((obs, sticky_actions))
+    obs = np.array([obs], dtype=np.float32)
+    return obs
+  
 class PixelsStateWrapper(gym.ObservationWrapper):
   """A wrapper that extracts pixel representation."""
 
