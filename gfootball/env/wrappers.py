@@ -25,6 +25,7 @@ from gfootball.env import football_action_set
 from gfootball.env import observation_preprocessing
 import gym
 import numpy as np
+import math
 
 
 class GetStateWrapper(gym.Wrapper):
