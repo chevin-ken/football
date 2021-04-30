@@ -257,7 +257,7 @@ class MoreFeatWrapper(gym.ObservationWrapper):
     sticky_actions = []
     for obs in observation:
         sticky_actions.append(do_flatten(obs["sticky_actions"]))
-        obs = np.concatenate((obs, sticky_actions))
+    obs = np.concatenate((obs, sticky_actions))
     obs = np.array([obs], dtype=np.float32)
     return obs
   
