@@ -51,6 +51,8 @@ def _process_representation_wrappers(env, representation, channel_dimensions):
     env = wrappers.Simple115StateWrapper(env, True)
   elif representation == 'extracted':
     env = wrappers.SMMWrapper(env, channel_dimensions)
+  elif representation == 'morefeat':
+    env = wrappers.MoreFeatWrapper(env)
   elif representation == 'raw':
     pass
   else:
