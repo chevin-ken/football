@@ -191,7 +191,7 @@ class MoreFeatWrapper(gym.ObservationWrapper):
   def __init__(self, env, fixed_positions=False):
     gym.ObservationWrapper.__init__(self, env)
     action_shape = np.shape(self.env.action_space)
-    shape = (action_shape[0] if len(action_shape) else 1, 130)
+    shape = (action_shape[0] if len(action_shape) else 1, 140)
     self.observation_space = gym.spaces.Box(
         low=-np.inf, high=np.inf, shape=shape, dtype=np.float32)
     self._fixed_positions = fixed_positions
