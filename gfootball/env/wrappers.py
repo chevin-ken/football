@@ -254,13 +254,12 @@ class MoreFeatWrapper(gym.ObservationWrapper):
       game_mode = [0] * 7
       game_mode[obs['game_mode']] = 1
       o.extend(game_mode)
-      final_obs.append(o)
 
       # Position of active player
-      left, right = obs[:22], obs[44:66]
-      player = np.where(obs[97:108] == 1)[0]  # Left to right? Right to left?
-      x = obs[2*player]
-      y = obs[2*player + 1]
+      left, right = o[:22], o[44:66]
+      player = np.where(o[97:108] == 1)[0]  # Left to right? Right to left?
+      x = o[2*player]
+      y = o[2*player + 1]
 
       # Closest teammate to active player: [distance, x-direction, y-direction]
       p_i = 0
@@ -270,7 +269,8 @@ class MoreFeatWrapper(gym.ObservationWrapper):
           if dist and dist < closest_dist: 
               p_i = i
               closest_dist = dist
-      close_teammate = np.array([closest_dist, (left[2*p_i] - x)[0], (left[2*p_i + 1] - y)[0]])
+      close_teammate = [closest_dist, (left[2*p_i] - x)[0], (left[2*p_i + 1] - y)[0]]
+      o.extend(close_teammate)
 
       # Closest opponent to active player: [distance, x-direction, y-direction]
       p_i = 0
@@ -280,24 +280,27 @@ class MoreFeatWrapper(gym.ObservationWrapper):
           if dist and dist < closest_dist: 
               p_i = i
               closest_dist = dist
-      close_opponent = np.array([closest_dist, (right[2*p_i] - x)[0], (right[2*p_i + 1] - y)[0]])
+      close_opponent = [closest_dist, (right[2*p_i] - x)[0], (right[2*p_i + 1] - y)[0]]
+      o.extend(close_opponent)
 
       # Ball to active player: [distance, x-direction, y-direction]
-      dist = math.sqrt((obs[88] - x) ** 2 + (obs[89] - y) ** 2)
-      ball_dist = np.array([dist, (obs[88] - x)[0], (obs[89] - y)[0]])
+      dist = math.sqrt((o[88] - x) ** 2 + (o[89] - y) ** 2)
+      ball_dist = [dist, (o[88] - x)[0], (o[89] - y)[0]]
+      o.extend(ball_dist)
 
       # Ball to own goal: [distance, x-direction, y-direction]
-      dist = math.sqrt((obs[88] + 1) ** 2 + (obs[89]) ** 2)
-      ball_2_own_goal = np.array([dist, obs[88] + 1, obs[88]])
+      dist = math.sqrt((o[88] + 1) ** 2 + (o[89]) ** 2)
+      ball_2_own_goal = [dist, o[88] + 1, o[88]]
+      o.extend(ball_2_own_goal)
 
       # Ball to opponent goal: [distance, x-direction, y-direction]
-      dist = math.sqrt((obs[88] - 1) ** 2 + (obs[89]) ** 2)
-      ball_2_opp_goal = np.array([dist, obs[88] - 1, obs[88]])
+      dist = math.sqrt((o[88] - 1) ** 2 + (o[89]) ** 2)
+      ball_2_opp_goal = [dist, o[88] - 1, o[88]]
+      o.extend(ball_2_opp_goal)
 
-      o = np.concatenate((o, close_teammate, close_opponent, ball_dist, ball_2_own_goal, ball_2_opp_goal))
       o.extend(obs["sticky_actions"])
       
-    final_obs.append(o)
+      final_obs.append(o)
     return np.array(final_obs, dtype=np.float32)
   
 class PixelsStateWrapper(gym.ObservationWrapper):
