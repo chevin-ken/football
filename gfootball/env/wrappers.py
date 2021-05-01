@@ -256,6 +256,7 @@ class MoreFeatWrapper(gym.ObservationWrapper):
     
     sticky_actions = []
     for single_obs in observation:
+        print(single_obs["sticky_actions"])
         sticky_actions.append(do_flatten(single_obs["sticky_actions"]))
     print(obs.shape)
     print(np.array(sticky_actions).shape)
