@@ -258,6 +258,7 @@ class MoreFeatWrapper(gym.ObservationWrapper):
       # Position of active player
       left, right = o[:22], o[44:66]
       player = np.where(o[97:108] == 1)[0]  # Left to right? Right to left?
+      print(player)
       x = o[2*player]
       y = o[2*player + 1]
 
