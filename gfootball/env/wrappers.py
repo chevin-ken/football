@@ -257,17 +257,24 @@ class MoreFeatWrapper(gym.ObservationWrapper):
 
       # Position of active player
       left, right = o[:22], o[44:66]
-      player = np.where(o[97:108] == 1)[0]  # Left to right? Right to left?
-      print(player)
-      x = o[2*player]
-      y = o[2*player + 1]
+      
+      player = -1
+      for i in range(97, 108):
+        if o[i] == 1:
+          player = i - 97
+
+      x = 0
+      y = 0
+      if player >= 0:
+        x = o[2*player]
+        y = o[2*player + 1]
 
       # Closest teammate to active player: [distance, x-direction, y-direction]
       p_i = 0
       closest_dist = float('inf')
       for i in range(11):
           dist = math.sqrt((left[2*i] - x) ** 2 + (left[2*i + 1] - y) ** 2)
-          if dist and dist < closest_dist: 
+          if dist and dist < closest_dist and i != player: 
               p_i = i
               closest_dist = dist
       close_teammate = [closest_dist, (left[2*p_i] - x)[0], (left[2*p_i + 1] - y)[0]]
@@ -285,18 +292,24 @@ class MoreFeatWrapper(gym.ObservationWrapper):
       o.extend(close_opponent)
 
       # Ball to active player: [distance, x-direction, y-direction]
-      dist = math.sqrt((o[88] - x) ** 2 + (o[89] - y) ** 2)
-      ball_dist = [dist, (o[88] - x)[0], (o[89] - y)[0]]
+      ball_dist = [0, 0, 0]
+      if player >= 0:
+        dist = math.sqrt((o[88] - x) ** 2 + (o[89] - y) ** 2)
+        ball_dist = [dist, (o[88] - x)[0], (o[89] - y)[0]]
       o.extend(ball_dist)
 
       # Ball to own goal: [distance, x-direction, y-direction]
-      dist = math.sqrt((o[88] + 1) ** 2 + (o[89]) ** 2)
-      ball_2_own_goal = [dist, o[88] + 1, o[88]]
+      ball_2_own_gal = [0, 0, 0]
+      if player >= 0:
+        dist = math.sqrt((o[88] + 1) ** 2 + (o[89]) ** 2)
+        ball_2_own_goal = [dist, o[88] + 1, o[88]]
       o.extend(ball_2_own_goal)
 
       # Ball to opponent goal: [distance, x-direction, y-direction]
-      dist = math.sqrt((o[88] - 1) ** 2 + (o[89]) ** 2)
-      ball_2_opp_goal = [dist, o[88] - 1, o[88]]
+      ball_2_opp_goal = [0, 0, 0]
+      if player >= 0:
+        dist = math.sqrt((o[88] - 1) ** 2 + (o[89]) ** 2)
+        ball_2_opp_goal = [dist, o[88] - 1, o[88]]
       o.extend(ball_2_opp_goal)
 
       o.extend(obs["sticky_actions"])
