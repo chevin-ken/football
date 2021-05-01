@@ -277,7 +277,7 @@ class MoreFeatWrapper(gym.ObservationWrapper):
           if dist and dist < closest_dist and i != player: 
               p_i = i
               closest_dist = dist
-      close_teammate = [closest_dist, (left[2*p_i] - x)[0], (left[2*p_i + 1] - y)[0]]
+      close_teammate = [closest_dist, (left[2*p_i] - x), (left[2*p_i + 1] - y)]
       o.extend(close_teammate)
 
       # Closest opponent to active player: [distance, x-direction, y-direction]
@@ -288,14 +288,14 @@ class MoreFeatWrapper(gym.ObservationWrapper):
           if dist and dist < closest_dist: 
               p_i = i
               closest_dist = dist
-      close_opponent = [closest_dist, (right[2*p_i] - x)[0], (right[2*p_i + 1] - y)[0]]
+      close_opponent = [closest_dist, (right[2*p_i] - x), (right[2*p_i + 1] - y)]
       o.extend(close_opponent)
 
       # Ball to active player: [distance, x-direction, y-direction]
       ball_dist = [0, 0, 0]
       if player >= 0:
         dist = math.sqrt((o[88] - x) ** 2 + (o[89] - y) ** 2)
-        ball_dist = [dist, (o[88] - x)[0], (o[89] - y)[0]]
+        ball_dist = [dist, (o[88] - x), (o[89] - y)]
       o.extend(ball_dist)
 
       # Ball to own goal: [distance, x-direction, y-direction]
